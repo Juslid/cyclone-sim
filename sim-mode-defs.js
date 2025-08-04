@@ -1,12 +1,11 @@
 // ---- Simulation Modes ---- //
 
-const SIMULATION_MODES = ['Normal','Hyper','Wild','Megablobs','Experimental','Spooky']; // Labels for sim mode selector UI
+const SIMULATION_MODES = ['Normal','Hyper','Wild','Megablobs','Experimental']; // Labels for sim mode selector UI
 const SIM_MODE_NORMAL = 0;
 const SIM_MODE_HYPER = 1;
 const SIM_MODE_WILD = 2;
 const SIM_MODE_MEGABLOBS = 3;
 const SIM_MODE_EXPERIMENTAL = 4;
-const SIM_MODE_SPOOKY = 5;
 
 // ---- Active Attributes ---- //
 
@@ -30,14 +29,6 @@ ACTIVE_ATTRIBS[SIM_MODE_EXPERIMENTAL] = [
     'kaboom'
 ];
 
-// ---- Season Curve ---- //
-
-const SEASON_CURVE = {};
-
-SEASON_CURVE.default = 'seasonalSine';
-SEASON_CURVE[SIM_MODE_SPOOKY] = 'spookySeasonCurve';
-
-
 // ---- Spawn Rules ---- //
 
 const SPAWN_RULES = {};
@@ -48,7 +39,6 @@ SPAWN_RULES[SIM_MODE_HYPER] = {};
 SPAWN_RULES[SIM_MODE_WILD] = {};
 SPAWN_RULES[SIM_MODE_MEGABLOBS] = {};
 SPAWN_RULES[SIM_MODE_EXPERIMENTAL] = {};
-SPAWN_RULES[SIM_MODE_SPOOKY] = {};
 
 // -- Defaults -- //
 
@@ -176,10 +166,10 @@ SPAWN_RULES.defaults.archetypes = {
 
 SPAWN_RULES.defaults.doSpawn = function(b){
     // tropical waves
-    if(random()<0.015*sq((seasonCurve(b.tick)+1)/2)) b.spawnArchetype('tw');
+    if(random()<0.015*sq((seasonalSine(b.tick)+1)/2)) b.spawnArchetype('tw');
 
     // extratropical cyclones
-    if(random()<0.01-0.002*seasonCurve(b.tick)) b.spawnArchetype('ex');
+    if(random()<0.01-0.002*seasonalSine(b.tick)) b.spawnArchetype('ex');
 };
 
 // -- Normal Mode -- //
@@ -189,9 +179,9 @@ SPAWN_RULES[SIM_MODE_NORMAL].doSpawn = SPAWN_RULES.defaults.doSpawn;
 // -- Hyper Mode -- //
 
 SPAWN_RULES[SIM_MODE_HYPER].doSpawn = function(b){
-    if(random()<(0.013*sq((seasonCurve(b.tick)+1)/2)+0.002)) b.spawnArchetype('tw');
+    if(random()<(0.013*sq((seasonalSine(b.tick)+1)/2)+0.002)) b.spawnArchetype('tw');
 
-    if(random()<0.01-0.002*seasonCurve(b.tick)) b.spawnArchetype('ex');
+    if(random()<0.01-0.002*seasonalSine(b.tick)) b.spawnArchetype('ex');
 };
 
 // -- Wild Mode -- //
@@ -212,15 +202,15 @@ SPAWN_RULES[SIM_MODE_WILD].archetypes = {
 
 SPAWN_RULES[SIM_MODE_WILD].doSpawn = function(b){
     if(random()<0.015) b.spawnArchetype('tw');
-    if(random()<0.01-0.002*seasonCurve(b.tick)) b.spawnArchetype('ex');
+    if(random()<0.01-0.002*seasonalSine(b.tick)) b.spawnArchetype('ex');
 };
 
 // -- Megablobs Mode -- //
 
 SPAWN_RULES[SIM_MODE_MEGABLOBS].doSpawn = function(b){
-    if(random()<(0.013*sq((seasonCurve(b.tick)+1)/2)+0.002)) b.spawnArchetype('tw');
+    if(random()<(0.013*sq((seasonalSine(b.tick)+1)/2)+0.002)) b.spawnArchetype('tw');
 
-    if(random()<0.01-0.002*seasonCurve(b.tick)) b.spawnArchetype('ex');
+    if(random()<0.01-0.002*seasonalSine(b.tick)) b.spawnArchetype('ex');
 };
 
 // -- Experimental Mode -- //
@@ -277,10 +267,6 @@ SPAWN_RULES[SIM_MODE_EXPERIMENTAL].archetypes = {
 
 SPAWN_RULES[SIM_MODE_EXPERIMENTAL].doSpawn = SPAWN_RULES[SIM_MODE_HYPER].doSpawn;
 
-// -- Spooky Mode -- //
-
-SPAWN_RULES[SIM_MODE_SPOOKY].doSpawn = SPAWN_RULES.defaults.doSpawn;
-
 
 // ---- Definitions of Environmental Fields ---- //
 
@@ -292,7 +278,6 @@ ENV_DEFS[SIM_MODE_HYPER] = {}; // Same for "Hyper" simulation mode
 ENV_DEFS[SIM_MODE_WILD] = {};  // "Wild" simulation mode
 ENV_DEFS[SIM_MODE_MEGABLOBS] = {}; // "Megablobs" simulation mode
 ENV_DEFS[SIM_MODE_EXPERIMENTAL] = {}; // "Experimental" simulation mode
-ENV_DEFS[SIM_MODE_SPOOKY] = {}; // "Spooky" simulation mode
 
 // -- Sample Env Field -- //
 
@@ -333,7 +318,7 @@ ENV_DEFS.defaults.jetstream = {
         let antiPeakLat = u.modifiers.antiPeakLat;
         let peakRange = u.modifiers.peakRange;
         let antiPeakRange = u.modifiers.antiPeakRange;
-        let s = seasonCurve(z);
+        let s = seasonalSine(z);
         let l = map(sqrt(map(s,-1,1,0,1)),0,1,antiPeakLat,peakLat);
         let r = map(s,-1,1,antiPeakRange,peakRange);
         v = map(v,0,1,-r,r);
@@ -378,7 +363,6 @@ ENV_DEFS[SIM_MODE_MEGABLOBS].jetstream = {
     }
 };
 ENV_DEFS[SIM_MODE_EXPERIMENTAL].jetstream = {};
-ENV_DEFS[SIM_MODE_SPOOKY].jetstream = {};
 
 // -- LLSteering -- //
 
@@ -464,7 +448,6 @@ ENV_DEFS[SIM_MODE_WILD].LLSteering = {
 };
 ENV_DEFS[SIM_MODE_MEGABLOBS].LLSteering = {};
 ENV_DEFS[SIM_MODE_EXPERIMENTAL].LLSteering = {};
-ENV_DEFS[SIM_MODE_SPOOKY].LLSteering = {};
 
 // -- ULSteering -- //
 
@@ -478,7 +461,7 @@ ENV_DEFS.defaults.ULSteering = {
 
         let m = u.noise(1);
 
-        let s = seasonCurve(z);
+        let s = seasonalSine(z);
         let j0 = u.field('jetstream');                                                          // y-position of jetstream
         let j1 = u.field('jetstream',x+dx);                                                     // y-position of jetstream dx to the east for differential
         let j = abs(y-j0);                                                                      // distance of point north/south of jetstream
@@ -589,7 +572,6 @@ ENV_DEFS[SIM_MODE_WILD].ULSteering = {
 };
 ENV_DEFS[SIM_MODE_MEGABLOBS].ULSteering = {};
 ENV_DEFS[SIM_MODE_EXPERIMENTAL].ULSteering = {};
-ENV_DEFS[SIM_MODE_SPOOKY].ULSteering = {};
 
 // -- shear -- //
 
@@ -631,7 +613,6 @@ ENV_DEFS[SIM_MODE_HYPER].shear = {};
 ENV_DEFS[SIM_MODE_WILD].shear = {};
 ENV_DEFS[SIM_MODE_MEGABLOBS].shear = {};
 ENV_DEFS[SIM_MODE_EXPERIMENTAL].shear = {};
-ENV_DEFS[SIM_MODE_SPOOKY].shear = {};
 
 // -- SSTAnomaly -- //
 
@@ -695,7 +676,6 @@ ENV_DEFS[SIM_MODE_MEGABLOBS].SSTAnomaly = {
     }
 };
 ENV_DEFS[SIM_MODE_EXPERIMENTAL].SSTAnomaly = {};
-ENV_DEFS[SIM_MODE_SPOOKY].SSTAnomaly = {};
 
 // -- SST -- //
 
@@ -705,7 +685,7 @@ ENV_DEFS.defaults.SST = {
     mapFunc: (u,x,y,z)=>{
         if(y<0) return 0;
         let anom = u.field('SSTAnomaly');
-        let s = seasonCurve(z);
+        let s = seasonalSine(z);
         let w = map(cos(map(x,0,WIDTH,0,PI)),-1,1,0,1);
         let h0 = y/HEIGHT;
         let h1 = (sqrt(h0)+h0)/2;
@@ -783,7 +763,6 @@ ENV_DEFS[SIM_MODE_EXPERIMENTAL].SST = {
         peakSeasonTropicsTemp: 28
     }
 };
-ENV_DEFS[SIM_MODE_SPOOKY].SST = {};
 
 // -- moisture -- //
 
@@ -792,7 +771,7 @@ ENV_DEFS.defaults.moisture = {
     version: 0,
     mapFunc: (u,x,y,z)=>{
         let v = u.noise(0);
-        let s = seasonCurve(z);
+        let s = seasonalSine(z);
         let l = land.get(Coordinate.convertFromXY(u.basin.mapType, x, u.basin.hemY(y)));
         let pm = u.modifiers.polarMoisture;
         let tm = u.modifiers.tropicalMoisture;
@@ -848,7 +827,6 @@ ENV_DEFS[SIM_MODE_WILD].moisture = {
 };
 ENV_DEFS[SIM_MODE_MEGABLOBS].moisture = {};
 ENV_DEFS[SIM_MODE_EXPERIMENTAL].moisture = {};
-ENV_DEFS[SIM_MODE_SPOOKY].moisture = {};
 
 // ---- Active Storm System Algorithm ---- //
 
@@ -860,7 +838,6 @@ STORM_ALGORITHM[SIM_MODE_HYPER] = {};
 STORM_ALGORITHM[SIM_MODE_WILD] = {};
 STORM_ALGORITHM[SIM_MODE_MEGABLOBS] = {};
 STORM_ALGORITHM[SIM_MODE_EXPERIMENTAL] = {};
-STORM_ALGORITHM[SIM_MODE_SPOOKY] = {};
 
 // -- Interaction -- //
 
@@ -1073,7 +1050,6 @@ STORM_ALGORITHM[SIM_MODE_HYPER].version = 0;
 STORM_ALGORITHM[SIM_MODE_WILD].version = 0;
 STORM_ALGORITHM[SIM_MODE_MEGABLOBS].version = 0;
 STORM_ALGORITHM[SIM_MODE_EXPERIMENTAL].version = 1;
-STORM_ALGORITHM[SIM_MODE_SPOOKY].version = 0;
 
 // -- Upgrade -- //
 // Converts active attributes in case an active system is loaded after an algorithm change breaks old values
@@ -1103,7 +1079,3 @@ STORM_ALGORITHM[SIM_MODE_EXPERIMENTAL].upgrade = function(sys,data,oldVersion){
         sys.kaboom = 0;
     }
 };
-
-// STORM_ALGORITHM[SIM_MODE_SPOOKY].upgrade = function(sys,data,oldVersion){
-
-// };

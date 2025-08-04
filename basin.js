@@ -11,10 +11,6 @@ class Basin{
         this.godMode = opts.godMode;
         this.SHem = opts.hem;
         this.actMode = opts.actMode || 0;
-        if(SEASON_CURVE[this.actMode])
-            seasonCurve = window[SEASON_CURVE[this.actMode]];
-        else
-            seasonCurve = window[SEASON_CURVE.default];
         if(opts.year !== undefined)
             this.startYear = opts.year;
         else if(this.SHem)
@@ -678,10 +674,6 @@ class Basin{
                         }
                     }
                     this.env.init(envData);
-                    if(SEASON_CURVE[this.actMode])
-                        seasonCurve = window[SEASON_CURVE[this.actMode]];
-                    else
-                        seasonCurve = window[SEASON_CURVE.default];
                     if(oldNameList){
                         let desSys = DesignationSystem.convertFromOldNameList(oldNameList);
                         if(!desSys.naming.annual)
